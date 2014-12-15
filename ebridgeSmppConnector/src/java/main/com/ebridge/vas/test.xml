@@ -1,0 +1,324 @@
+USE [ECSA_testing]
+
+        go
+        if exists (select [name] from sys.objects where [name] = 'ClientTempInserted')
+        begin
+        drop trigger ClientTempInserted
+        end
+
+        go
+        create trigger ClientTempInserted
+        on [dbo].[ClientTemp]
+        after insert
+        as
+        begin
+
+        set NOCOUNT on;
+
+        declare @pastelAccount varchar(30)
+        declare @criteria varchar(100)
+        declare @prefixLen int
+        declare @padLen int
+
+        declare @actionType varchar(50)
+        declare @dcLink int
+        declare @mainAccLink int
+        declare @accountNumber varchar(20)
+        declare @name varchar(50),
+        @title varchar(5),
+        @init varchar(6),
+        @contact_person varchar(30),
+        @addressee varchar(30),
+        @delivered_to varchar(30),
+        @ct bit,
+        @cidnumber varchar(20),
+        @cpassportnumber varchar(20),
+        @ularsex varchar(max),
+        @ularlanguage varchar(max),
+        @udarbirthdate datetime,
+        @Physical1 varchar(40),
+        @Physical2 varchar(40),
+        @Physical3 varchar(40),
+        @Physical4 varchar(40),
+        @Physical5 varchar(40),
+        @PhysicalPC varchar(15),
+        @Post1 varchar(40),
+        @Post2 varchar(40),
+        @Post3 varchar(40),
+        @Post4 varchar(40),
+        @Post5 varchar(40),
+        @PostPC varchar(15),
+        @Telephone varchar(25),
+        @Telephone2 varchar(25),
+        @Fax1 varchar(25),
+        @Fax2 varchar(25)
+
+        select top 1 @actionType = [ActionType], @dcLink = [DCLink],
+        @cIDNumber = [cIDNumber], @cPassportNumber = [cPassportNumber],
+        @name = [Name], @accountNumber = Account,
+        @title = title, @init = [init], @contact_person = Contact_Person,
+        @addressee = Addressee, @ct = ct, @ularsex = ulARSex,
+        @ularlanguage = ulARLanguage, @udarbirthdate = udARBirthDate,
+        @Physical1 = Physical1,	@Physical2 = Physical2,		@Physical3 = Physical3,
+        @Physical4 = Physical4, @Physical5 = Physical5,		@PhysicalPC = PhysicalPC,
+        @Post1 = Post1,			@Post2 = Post2,				@Post3 = Post3,
+        @Post4 = Post4,			@Post5 = Post5,				@PostPC = PostPC,
+        @Telephone = Telephone,	@Telephone = Telephone,
+        @Fax1 = Fax1,			@Fax2 = Fax2
+        from [dbo].[ClientTemp]
+        order by DCLink desc
+
+        if @actionType = 'Applicant Insert' OR  @actionType = 'Debtor Insert'
+        begin
+        begin transaction
+        /* get main account using id number or passport. */
+        set @mainAccLink =
+        ( select top 1 DCLink from [dbo].Client
+        where MainAccLink = 0
+        and  ( (cPassportNumber = @cPassportNumber and isnull(cPassportNumber,'') != '')
+        or    (cIDNumber = @cIDNumber and iSNULL(cIDNumber,'') != '') ) )
+        if isnull( @mainAccLink, 0 ) = 0
+        begin
+
+        /* generate a pastel account number */
+        set @padLen = 6
+        set @prefixLen = 3
+        set @criteria = REPLACE(@name,' ', '')
+
+        select @criteria = left(@criteria, @prefixLen) + '%'
+        declare @suffixStart bigint, @suffixLen bigint
+
+        select @suffixStart = @prefixLen + 1
+        select @suffixLen = @padLen - @prefixLen
+
+        declare @codePref varchar(20), @codePost varchar(20), @newPost varchar(20)
+
+        select top 1 @codePref = substring(Name, 1, @prefixLen), @codePost = cast(substring(Name, @suffixStart, len(Name) - @prefixLen) as bigint)
+        from [dbo].Client where Name like @criteria and isnumeric(substring(Name, @suffixStart, len(Name) - @prefixLen)) > 0 order by 1 desc, 2 desc
+
+        select @newPost = cast(cast(@codePost as bigint) + 1 as varchar(20))
+        if @newPost is null
+        select @newPost = '1', @codePref = left(@criteria, @prefixLen)
+        if @padLen - len(@codePref + @newPost) > 0 --pad:
+        select @newPost = replicate('0', @padLen - len(@codePref + @newPost)) + @newPost
+        set  @pastelAccount = upper(@codePref) +  @newPost
+
+        /*Insert Main Account*/
+        INSERT INTO [dbo].[Client]
+        ([Account],		[Name],[Title],[Init],[Contact_Person],[Physical1],[Physical2],[Physical3],[Physical4],[Physical5],
+        [PhysicalPC],[Addressee],[Post1],[Post2],[Post3],[Post4],[Post5],[PostPC],[Delivered_To],[Telephone],[Telephone2],
+        [Fax1],[Fax2],[AccountTerms],[CT],[Tax_Number],[Registration],[Credit_Limit],[RepID],[Interest_Rate],[Discount],
+        [On_Hold],[BFOpenType],[EMail],[BankLink],[BranchCode],[BankAccNum],[BankAccType],[AutoDisc],[DiscMtrxRow],
+        [MainAccLink],[CashDebtor],[DCBalance],[CheckTerms],[UseEmail],[iIncidentTypeID],[iBusTypeID],[iBusClassID],
+        [iCountryID],[iAgentID],[dTimeStamp],[cAccDescription],[cWebPage],[iClassID],[iAreasID],[cBankRefNr],[iCurrencyID],
+        [bStatPrint],[bStatEmail],[cStatEmailPass],[bForCurAcc],[fForeignBalance],[bTaxPrompt],[iARPriceListNameID],[iSettlementTermsID],
+        [bSourceDocPrint],[bSourceDocEmail],[iEUCountryID],[iDefTaxTypeID],[bCODAccount],[Client_iBranchID],[iAgeingTermID],
+        [bElecDocAcceptance],[iBankDetailType],[cBankAccHolder],[cIDNumber],[cPassportNumber],[ulARStatus],[udARApplicationDate],
+        [ucARInstitute],[ulARBillingType],[ubARChargeDiscountedRate],[ulARSex],[ulARRace],[ulARLanguage],[udARBirthDate],
+        [ubARQualification],[ucARDiscipline],[uiARDualRegistrationLink])
+        SELECT TOP 1
+        @pastelAccount,		[Name],[Title],[Init],[Contact_Person],[Physical1],[Physical2],[Physical3],[Physical4],[Physical5],
+        [PhysicalPC],[Addressee],[Post1],[Post2],[Post3],[Post4],[Post5],[PostPC],[Delivered_To],[Telephone],[Telephone2],
+        [Fax1],[Fax2],[AccountTerms],[CT],[Tax_Number],[Registration],[Credit_Limit],[RepID],[Interest_Rate],[Discount],
+        [On_Hold],[BFOpenType],[EMail],[BankLink],[BranchCode],[BankAccNum],[BankAccType],[AutoDisc],[DiscMtrxRow],
+        [MainAccLink],[CashDebtor],[DCBalance],[CheckTerms],[UseEmail],[iIncidentTypeID],[iBusTypeID],[iBusClassID],
+        [iCountryID],[iAgentID],[dTimeStamp],[cAccDescription],[cWebPage],[iClassID],[iAreasID],[cBankRefNr],[iCurrencyID],
+        [bStatPrint],[bStatEmail],[cStatEmailPass],[bForCurAcc],[fForeignBalance],[bTaxPrompt],[iARPriceListNameID],[iSettlementTermsID],
+        [bSourceDocPrint],[bSourceDocEmail],[iEUCountryID],[iDefTaxTypeID],[bCODAccount],[Client_iBranchID],[iAgeingTermID],
+        [bElecDocAcceptance],[iBankDetailType],[cBankAccHolder],[cIDNumber],[cPassportNumber],[ulARStatus],[udARApplicationDate],
+        [ucARInstitute],[ulARBillingType],[ubARChargeDiscountedRate],[ulARSex],[ulARRace],[ulARLanguage],[udARBirthDate],
+        [ubARQualification],[ucARDiscipline],[uiARDualRegistrationLink]
+        FROM [dbo].[ClientTemp]
+        WHERE [dbo].[ClientTemp].DCLink = @dcLink
+
+        /*Get Main Account ID*/
+        SET @mainAccLink = ( SELECT DCLink FROM [dbo].Client WHERE Account = @pastelAccount )
+
+        end
+
+        IF NOT EXISTS(SELECT * FROM [dbo].Client WHERE Account = CAST(@accountNumber AS VARCHAR(50)))
+        begin
+        INSERT INTO [dbo].[Client]
+        ([Account],[Name],[Title],[Init],[Contact_Person],[Physical1],[Physical2],[Physical3],[Physical4],[Physical5],
+        [PhysicalPC],[Addressee],[Post1],[Post2],[Post3],[Post4],[Post5],[PostPC],[Delivered_To],[Telephone],[Telephone2],
+        [Fax1],[Fax2],[AccountTerms],[CT],[Tax_Number],[Registration],[Credit_Limit],[RepID],[Interest_Rate],[Discount],
+        [On_Hold],[BFOpenType],[EMail],[BankLink],[BranchCode],[BankAccNum],[BankAccType],[AutoDisc],[DiscMtrxRow],
+        [MainAccLink],[CashDebtor],[DCBalance],[CheckTerms],[UseEmail],[iIncidentTypeID],[iBusTypeID],[iBusClassID],
+        [iCountryID],[iAgentID],[dTimeStamp],[cAccDescription],[cWebPage],[iClassID],[iAreasID],[cBankRefNr],[iCurrencyID],
+        [bStatPrint],[bStatEmail],[cStatEmailPass],[bForCurAcc],[fForeignBalance],[bTaxPrompt],[iARPriceListNameID],[iSettlementTermsID],
+        [bSourceDocPrint],[bSourceDocEmail],[iEUCountryID],[iDefTaxTypeID],[bCODAccount],[Client_iBranchID],[iAgeingTermID],
+        [bElecDocAcceptance],[iBankDetailType],[cBankAccHolder],[cIDNumber],[cPassportNumber],[ulARStatus],[udARApplicationDate],
+        [ucARInstitute],[ulARBillingType],[ubARChargeDiscountedRate],[ulARSex],[ulARRace],[ulARLanguage],[udARBirthDate],
+        [ubARQualification],[ucARDiscipline],[uiARDualRegistrationLink],[ubARPromotionFee])
+        select
+        [Account],[Name],[Title],[Init],[Contact_Person],[Physical1],[Physical2],[Physical3],[Physical4],[Physical5],
+        [PhysicalPC],[Addressee],[Post1],[Post2],[Post3],[Post4],[Post5],[PostPC],[Delivered_To],[Telephone],[Telephone2],
+        [Fax1],[Fax2],[AccountTerms],[CT],[Tax_Number],[Registration],[Credit_Limit],[RepID],[Interest_Rate],[Discount],
+        [On_Hold],[BFOpenType],[EMail],[BankLink],[BranchCode],[BankAccNum],[BankAccType],[AutoDisc],[DiscMtrxRow],
+        @mainAccLink,[CashDebtor],[DCBalance],[CheckTerms],[UseEmail],[iIncidentTypeID],[iBusTypeID],[iBusClassID],
+        [iCountryID],[iAgentID],[dTimeStamp],[cAccDescription],[cWebPage],[iClassID],[iAreasID],[cBankRefNr],[iCurrencyID],
+        [bStatPrint],[bStatEmail],[cStatEmailPass],[bForCurAcc],[fForeignBalance],[bTaxPrompt],[iARPriceListNameID],[iSettlementTermsID],
+        [bSourceDocPrint],[bSourceDocEmail],[iEUCountryID],[iDefTaxTypeID],[bCODAccount],[Client_iBranchID],[iAgeingTermID],
+        [bElecDocAcceptance],[iBankDetailType],[cBankAccHolder],[cIDNumber],[cPassportNumber],[ulARStatus],[udARApplicationDate],
+        [ucARInstitute],[ulARBillingType],[ubARChargeDiscountedRate],[ulARSex],[ulARRace],[ulARLanguage],[udARBirthDate],
+        [ubARQualification],[ucARDiscipline],[uiARDualRegistrationLink],[ubARPromotionFee]
+        from [dbo].[ClientTemp]
+        WHERE [dbo].[ClientTemp].DCLink = @dcLink
+        end
+
+        delete from [dbo].ClientTemp where DCLink = @dcLink
+
+        if @@error <> 0
+    begin
+    raiserror('Failed to insert application',16,1)
+    rollback tran
+    return
+    end
+    commit transaction
+    end
+
+    if @actionType = 'Applicant Update' OR  @actionType = 'Debtor Update'
+    begin
+    begin transaction
+
+    set @mainAccLink = (
+    select MainAccLink
+    from [dbo].Client
+    where account = @accountNumber
+    )
+    /* update all linked accounts */
+    update [dbo].[Client]
+    set
+    [name]          = @name,
+    title           = @title,
+    [init]          = @init,
+    contact_person  = @contact_person ,
+    addressee       = @addressee,
+    delivered_to    = @delivered_to,
+    ct              = @ct,
+    cidnumber       = @cidnumber,
+    cpassportnumber = @cpassportnumber,
+    ularsex         = @ularsex,
+    ularlanguage    = @ularlanguage,
+    udarbirthdate   = @udarbirthdate
+    where MainAccLink = @mainAccLink
+    OR DCLink = @mainAccLink
+
+    /* update all this account */
+    update [dbo].[Client]
+    set
+    ucARRefuseReason			  = t.ucARRefuseReason,
+    udARRefuseDate				  = t.udARRefuseDate,
+    ulARStatus                    = t.ulARStatus,
+    ucAROrisysRegistrationNumber  = t.ucAROrisysRegistrationNumber,
+    udARMembershipStartDate       = t.udARMembershipStartDate,
+    ubARChargeDiscountedRate	  = t.ubARChargeDiscountedRate,
+    ucARInstitute				  = t.ucARInstitute
+    from [dbo].[ClientTemp] t
+    join [dbo].[Client] c
+    on t.account = c.account
+    and t.DCLink = @dcLink
+
+    delete from [dbo].ClientTemp where DCLink = @dcLink
+
+    commit transaction
+    end
+
+    if @actionType = 'Address Update' OR @actionType = 'Address Insert'
+    begin
+    begin transaction
+
+    set @mainAccLink = (
+    select MainAccLink
+    from [dbo].Client
+    where account = @accountNumber
+    )
+
+    update [dbo].[Client]
+    set
+    [Physical1]     = isnull(@Physical1, Physical1),
+    [Physical2]     = isnull(@Physical2, Physical2),
+    [Physical3]     = isnull(@Physical3, Physical3),
+    [Physical4]     = isnull(@Physical4, Physical4),
+    [Physical5]     = isnull(@Physical5, Physical5),
+    PhysicalPC      = isnull(@PhysicalPC,PhysicalPC),
+    [Post1]			= isnull(@Post1, Post1),
+    [Post2]			= isnull(@Post2, Post2),
+    [Post3]			= isnull(@Post3, Post3),
+    [Post4]			= isnull(@Post4, Post4),
+    [Post5]			= isnull(@Post5, Post5),
+    [PostPC]		= isnull(@PostPC, PostPC),
+    [Telephone]		= isnull(@Telephone, Telephone),
+    [Telephone2]    = isnull(@Telephone2, Telephone2),
+    [Fax1]			= isnull(@Fax1, Fax1),
+    [Fax2]			= isnull(@Fax2, Fax2)
+    from [dbo].[ClientTemp] t
+    inner join [dbo].[Client] b
+    on b.MainAccLink = @mainAccLink
+    OR b.DCLink = @mainAccLink
+
+    delete from [dbo].ClientTemp where DCLink = @dcLink
+
+    commit transaction
+    end
+
+    if @actionType = 'MemberInst Insert'
+    begin
+    begin transaction
+
+    update [dbo].[Client]
+    set
+    ucARInstitute				 = t.ucARInstitute,
+    ubARChargeDiscountedRate     = t.ubARChargeDiscountedRate,
+    udARMembershipStartDate      = t.udARMembershipStartDate
+    from [dbo].[ClientTemp] t
+    join [dbo].[Client] c
+    on t.account = c.account
+    and t.DCLink = @dcLink
+
+    delete from [dbo].ClientTemp where DCLink = @dcLink
+
+    commit transaction
+    end
+
+    if @actionType = 'MemberInst Update'
+    begin
+    begin transaction
+
+    update [dbo].[Client]
+    set
+    ulARStatus				 = t.ulARStatus,
+    ucARCancelReason		 = t.ucARCancelReason,
+    udARCancelDate			 = t.udARCancelDate,
+    ucARSuspendReason		 = t.ucARSuspendReason,
+    udARSuspendDate			 = t.udARSuspendDate,
+    udARMembershipStartDate  = t.udARMembershipStartDate,
+    uiARDualRegistrationLink = t.uiARDualRegistrationLink
+    from [dbo].[ClientTemp] t
+    join [dbo].[Client] c
+    on t.account = c.account
+    and t.DCLink = @dcLink
+
+    delete from [dbo].ClientTemp where DCLink = @dcLink
+
+    commit transaction
+    end
+
+    if @actionType = 'MemberInst Delete'
+    begin
+    begin transaction
+
+    update [dbo].[Client]
+    set
+    ucARInstitute			 = t.ucARInstitute,
+    ubARChargeDiscountedRate = t.ubARChargeDiscountedRate
+    from [dbo].[ClientTemp] t
+    join [dbo].[Client] c
+    on t.account = c.account
+    and t.DCLink = @dcLink
+
+    delete from [dbo].ClientTemp where DCLink = @dcLink
+
+    commit transaction
+    end
+    end

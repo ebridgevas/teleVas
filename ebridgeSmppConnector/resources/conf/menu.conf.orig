@@ -1,0 +1,36 @@
+
+{"SessionStartIndicator" : "com.ebridge.com.ebridge.vas.parsers.impl.RegexBasedSessionStartIndicator", "container" : "", "regex" : "bal|bundle|help|" },
+{"SessionStartIndicator" : "com.ebridge.com.ebridge.vas.parsers.impl.PayloadTypeBasedSessionStartIndicator", "container" : "payloadType", "regex" : "64" }
+
+
+[
+   {"menuItemType" : "node", "parent" : "971",  "uuid" : "1000", "menuId" : "0", "menuNarration" : "Welcome to Telecel DATA bundles.\nPlease select either 1 or 2", "processor" : ""},
+   {"menuItemType" : "leaf", "parent" : "1000", "uuid" : "1001", "menuId" : "1", "menuNarration" : "Balance enquiry",    "processor" : "com.ebridge.com.ebridge.vas.processors.impl.BalanceEnquiryProcessor"},
+   {"menuItemType" : "node", "parent" : "1000", "uuid" : "1002", "menuId" : "2", "menuNarration" : "Buy my DATA bundle", "processor" : ""},
+
+   {"uuid" : "1012", "menuId" : "0", "menuItemType" : "filteredNode", "menuNarration" : "SMS Data Bundle Selection By menuItemFilter","parent" : "33350", "menuItemFilter" : "", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1013", "menuId" : "1", "menuItemType" : "filteredLeaf", "menuNarration" : "Balance enquiry",   "parent" : "33350", "menuItemFilter" : "bal",    "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.BalanceEnquiryProcessor"},
+   {"uuid" : "1014", "menuId" : "2", "menuItemType" : "filteredLeaf", "menuNarration" : "Buy my DATA bundle","parent" : "33350", "menuItemFilter" : "bundle", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1015", "menuId" : "3", "menuItemType" : "node", "menuNarration" : "Balance enquiry",   "parent" : "33350", "menuItemFilter" : "help",    "serviceCommandProcessorName" : ""},
+
+   {"uuid" : "1003", "menuId" : "0", "menuItemType" : "node", "menuNarration" : "Select bundle 1 to 8", "parent" : "1002|1014", "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.DataBundlePurchaseProcessor"},
+   {"uuid" : "1004", "menuId" : "1", "menuItemType" : "leaf", "menuNarration" : "$1.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1005", "menuId" : "2", "menuItemType" : "leaf", "menuNarration" : "$2.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1006", "menuId" : "3", "menuItemType" : "leaf", "menuNarration" : "$3.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1007", "menuId" : "4", "menuItemType" : "leaf", "menuNarration" : "$4.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1008", "menuId" : "5", "menuItemType" : "leaf", "menuNarration" : "$5.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1009", "menuId" : "6", "menuItemType" : "leaf", "menuNarration" : "$6.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1010", "menuId" : "7", "menuItemType" : "leaf", "menuNarration" : "$7.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+   {"uuid" : "1011", "menuId" : "8", "menuItemType" : "leaf", "menuNarration" : "$8.00 20 MB", "parent" : "1002|1014", "serviceCommandProcessorName" : ""},
+
+   {"uuid" : "1012", "menuId" : "0", "menuItemType" : "leaf", "menuNarration" : "DataBundlePurchase", "parent" : "33073", "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.DataBundlePurchaseProcessor"},
+   {"uuid" : "1012", "menuId" : "0", "menuItemType" : "n", "menuNarration" : "Balance enquiry",   "parent" : "971", "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.BalanceEnquiryProcessor"},
+   {"uuid" : "1002", "menuId" : "2", "menuItemType" : "node", "menuNarration" : "Buy my DATA bundle","parent" : "971", "serviceCommandProcessorName" : ""},
+
+   {"uuid" : "1012", "menuId" : "0", "menuItemType" : "leaf", "menuNarration" : "AirtimeTransfer", "parent" : "33350", "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.AirtimeTransferProcessor"},
+
+   {"uuid" : "1013", "menuId" : "1", "menuItemType" : "leaf", "menuNarration" : "VoucherRecharge", "parent" : "33350", "serviceCommandProcessorName" : "com.ebridge.com.ebridge.vas.processors.impl.VoucherRechargeProcessor"},
+
+   {"uuid" : "1021", "menuId" : "2", "menuItemType" : "narrativeLeaf", "menuNarration" : "To transfer airtime enter amount then # and the number you are tranferring to. To recharge another number enter PIN then # and the number your are recharging.","parent" : "1015", "serviceCommandProcessorName" : ""},
+
+]
