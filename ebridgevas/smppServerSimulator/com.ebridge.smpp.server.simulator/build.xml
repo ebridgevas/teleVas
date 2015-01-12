@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<project name="ebridge-smpp-server-simulator" default="dist">
+
+  <property file="build.properties"/>
+  <import file="../../build/build.xml"/>
+
+  <target name="local.dist" depends="common.local.dist,launcher">
+    <copy file="${launcher.jar}" todir="${bundles.dir}/.."/>
+  </target>
+
+  <target name="local.clean" depends="common.local.clean">
+    <delete file="${bundles.dir}/../launcher.jar"/>
+  </target>
+
+</project>
