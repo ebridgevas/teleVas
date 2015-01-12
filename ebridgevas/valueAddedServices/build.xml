@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<project name="databundle.purchase" default="dist">
+
+  <!--<dirname property="ebridge.vas.dir" file="${ant.file.commons}"/>-->
+  <import file="../build/build.xml"/>
+
+  <!--<target name="commons">-->
+    <!--<ant dir="${ebridge.vas.dir}/com.ebridge.commons" inheritAll="false"/>-->
+  <!--</target>-->
+
+</project>

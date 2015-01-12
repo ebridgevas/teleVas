@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<project name="ebridge-smpp-protocol" default="dist">
+
+  <property file="build.properties"/>
+  <import file="../../build/build.xml"/>
+
+</project>

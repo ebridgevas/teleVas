@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<project name="ebridge-databundle-purchase" default="dist">
+
+  <property file="build.properties"/>
+  <import file="../build.xml"/>
+
+  <target name="local.dist" depends="vas.service.api, common.local.dist,launcher,shell">
+    <taskdef name="ipojo"
+             classname="org.apache.felix.ipojo.task.IPojoTask"
+             classpath="${ipojo.ant.jar}" />
+    <ipojo
+            input="${dist}/${ant.project.name}-${version}.jar"
+            metadata = "OSGI-INF/databundle.purchase.xml"/>
+
+    <copy file="${launcher.jar}" todir="${bundles.dir}/../"/>
+  </target>
+</project>

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<project name="ebridge-smpp-link-manager" default="dist">
+
+    <property file="build.properties"/>
+    <import file="../../build/build.xml"/>
+
+    <target name="compile" depends="common.compile"/>
+
+    <target name="init">
+        <copy todir="${dist}">
+            <fileset dir="${bundles.dir}" includes="*.jar"/>
+            <fileset dir="${lib}/felix" includes="org.apache.felix.ipojo-*.jar"/>
+            <fileset dir="${lib}/felix" includes="org.apache.felix.ipojo.annotations-*.jar"/>
+            <fileset dir="${lib}/felix" includes="org.apache.felix.ipojo.arch-*.jar"/>
+            <fileset dir="${lib}/felix" includes="org.apache.felix.shell*.jar"/>
+            <fileset dir="${lib}/joda.time" includes="joda-time-2.1.jar"/>
+            <fileset dir="${lib}/gson" includes="gson-2.2.4.jar"/>
+        </copy>
+    </target>
+
+    <target name="local.dist" depends="ebridgevas.command.processor.api, init, common.local.dist,launcher,shell">
+        <taskdef name="ipojo"
+                 classname="org.apache.felix.ipojo.task.IPojoTask"
+                 classpath="${ipojo.ant.jar}"/>
+        <ipojo
+                input="${dist}/${ant.project.name}-${version}.jar"
+                metadata="OSGI-INF/smpp.link.manager.xml"
+                />
+        <copy file="${launcher.jar}" todir="${bundles.dir}/.."/>
+    </target>
+
+    <target name="local.clean" depends="common.local.clean">
+        <delete file="${bundles.dir}/../launcher.jar"/>
+    </target>
+
+</project>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<project name="ebridge-command-processor-api" default="dist">
+
+  <property file="build.properties"/>
+  <import file="../../build/build.xml"/>
+
+</project>
