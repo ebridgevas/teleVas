@@ -24,9 +24,7 @@ public class SendMessageCommand extends BasicCommand {
         String sourceId = tokens[1];
         String destinationId = tokens[2];
         String message = join(tokens, 3);
-        // send 263733803480 971 971#
-        // msg to: 263733803480, from :  : 971 971#
-        out.println("args : " + args);
+
         out.println("msg to: " + destinationId + ", from : " + sourceId + " : " + message );
         smppServerSimulator.sendMessage( out, sourceId, destinationId, message );
     }
